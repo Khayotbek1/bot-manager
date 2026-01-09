@@ -91,3 +91,17 @@ bot-manager/
 ├── .env
 ├── .gitignore
 └── README.md
+```
+
+---
+
+## 👨‍💻 Dasturchi (Author)
+
+**Ism:** Hayotbek  
+**Familya:** Razzoqov
+
+**Mutaxassislik:** Python Backend  
+**Telegram:** https://t.me/Razzoqov7  
+
+Agar loyiha bo‘yicha savollar, takliflar yoki hamkorlik bo‘lsa — bemalol bog‘lanishingiz mumkin.
+
