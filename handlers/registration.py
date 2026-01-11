@@ -42,7 +42,7 @@ async def get_phone(message: Message, state):
         await session.commit()
 
     await message.answer("Ismingizni kiriting:")
-    await state.set_state(RegisterState.name)
+    await state.set_state(RegisterState.first_name)
 
 
 @router.message(RegisterState.first_name)

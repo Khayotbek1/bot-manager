@@ -11,7 +11,7 @@ from sqlalchemy import select
 from config import ADMINS
 from database import SessionLocal
 from models import User
-from keyboards.reply import admin_main_kb, export_kb
+from keyboards.reply import admin_main_kb, export_kb, register_kb
 from utils.csv_export import export_today, export_range_by_text
 from utils.statistics import get_full_statistics
 from states import AdminPostState
@@ -54,16 +54,19 @@ async def back_to_admin_menu(message: Message, state: FSMContext):
     )
 
 
+from keyboards.reply import register_kb
+
 @router.message(F.text == "🏠 Bosh menu")
-async def back_to_main_menu(message: Message, state: FSMContext):
+async def admin_exit_to_user_menu(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
 
     await state.clear()
     await message.answer(
-        "🏠 Bosh menu",
-        reply_markup=admin_main_kb()
+        "Assalomu alaykum!\nRo'yxatdan o'tish uchun pastdagi tugmani bosing.",
+        reply_markup=register_kb()
     )
+
 
 
 # ================= EXPORT =================

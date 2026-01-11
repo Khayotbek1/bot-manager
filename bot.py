@@ -12,7 +12,7 @@ from handlers import (
     registration,
     join_request,
     admin,
-    channel_events  # 🔴 MUHIM
+    channel_events
 )
 
 
@@ -30,7 +30,7 @@ async def main():
     dp.include_router(start.router)
     dp.include_router(registration.router)
     dp.include_router(join_request.router)
-    dp.include_router(channel_events.router)  # 🔴 SHU YETISHMAYOTGAN EDI
+    dp.include_router(channel_events.router)
     dp.include_router(admin.router)
 
     # 🔹 DB yaratish

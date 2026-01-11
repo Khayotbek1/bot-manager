@@ -38,6 +38,7 @@ def admin_main_kb():
             [KeyboardButton(text="📊 Statistika")],
             [KeyboardButton(text="📤 Export")],
             [KeyboardButton(text="📝 Post")],
+            [KeyboardButton(text="🏠 Bosh menu")]
         ],
         resize_keyboard=True
     )

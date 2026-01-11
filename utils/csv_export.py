@@ -44,13 +44,14 @@ def parse_date_range(text: str):
 async def write_csv(filename: str, users: list[User]):
     path = Path(filename)
 
-    with open(path, "w", newline="", encoding="utf-8") as f:
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         writer.writerow([
             "telegram_id",
             "username",
             "first_name",
             "phone",
+            "region",
             "joined_at",
             "left_at"
         ])
@@ -60,7 +61,8 @@ async def write_csv(filename: str, users: list[User]):
                 u.telegram_id,
                 u.username,
                 u.first_name,
-                u.phone,
+                f"'{u.phone}",
+                u.region,
                 format_dt(u.joined_at),
                 format_dt(u.left_at)
             ])
