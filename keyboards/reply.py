@@ -5,6 +5,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 def register_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
+            [KeyboardButton(text="▶️ Start")],
             [KeyboardButton(text="📝 Ro'yxatdan o'tish")]
         ],
         resize_keyboard=True

@@ -27,9 +27,7 @@ async def handle_join(event: ChatJoinRequest):
             pass
         return
 
-    # Agar ro‘yxatdan o‘tgan bo‘lsa → approve
     try:
         await event.approve()
     except TelegramNetworkError:
-        # Network yo‘q → jim o‘tamiz (bot yiqilmaydi)
         pass

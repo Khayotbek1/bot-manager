@@ -23,7 +23,7 @@ def join_channel_kb():
             [
                 InlineKeyboardButton(
                     text="📢 Kanalga kirish",
-                    url="https://t.me/+NTcXLr2KzDEyNWFi"
+                    url="https://t.me/+JvL4ZWQ1iEdkOTJi"
                 )
             ]
         ]

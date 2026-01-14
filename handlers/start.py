@@ -14,6 +14,10 @@ async def start(message: Message):
         reply_markup=register_kb()
     )
 
+@router.message(F.text == "▶️ Start")
+async def start_button(message: Message):
+    await start(message)
+
 @router.message(F.text == "🏠 Bosh menu")
 async def user_back_to_main(message: Message):
     await message.answer(
