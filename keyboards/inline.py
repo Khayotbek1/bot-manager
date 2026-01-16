@@ -6,7 +6,7 @@ regions = [
     "Navoiy viloyati", "Qashqadaryo viloyati",
     "Qoraqalpogʻiston Respublikasi", "Samarqand viloyati",
     "Sirdaryo viloyati", "Surxondaryo viloyati",
-    "Toshkent va Toshkent viloyati"
+    "Toshkent"
 ]
 
 def regions_kb():
