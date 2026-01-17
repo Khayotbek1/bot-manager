@@ -29,10 +29,11 @@ from utils.statistics import (
     get_channel_period_stats,
 )
 
-from states import AdminPostState
+from states import AdminPostState, AdminSection
 
 
 router = Router()
+
 
 # ================= ADMIN CHECK =================
 
@@ -43,11 +44,12 @@ def is_admin(user_id: int) -> bool:
 # ================= ADMIN PANEL =================
 
 @router.message(F.text == "/admin")
-async def admin_panel(message: Message):
+async def admin_panel(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         await message.answer("❌ Kechirasiz, sizga admin huquqi berilmagan!")
         return
 
+    await state.clear()
     await message.answer(
         "👨‍💼 <b>Admin panel</b>",
         reply_markup=admin_main_kb()
@@ -57,47 +59,41 @@ async def admin_panel(message: Message):
 # ================= NAVIGATION =================
 
 @router.message(F.text == "⬅️ Ortga")
-async def back_to_admin_menu(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
-    await state.clear()
-    await message.answer(
-        "👨‍💼 Admin panel",
-        reply_markup=admin_main_kb()
-    )
-
-
 @router.message(F.text == "🏠 Bosh menu")
-async def admin_exit_to_user_menu(message: Message, state: FSMContext):
+async def back_or_exit(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
 
     await state.clear()
-    await message.answer(
-        "Assalomu alaykum!\nRo'yxatdan o'tish uchun pastdagi tugmani bosing.",
-        reply_markup=register_kb()
-    )
+
+    if message.text == "🏠 Bosh menu":
+        await message.answer(
+            "Assalomu alaykum!\nRo'yxatdan o'tish uchun pastdagi tugmani bosing.",
+            reply_markup=register_kb()
+        )
+    else:
+        await message.answer(
+            "👨‍💼 Admin panel",
+            reply_markup=admin_main_kb()
+        )
 
 
 # ================= EXPORT =================
 
 @router.message(F.text == "📤 Export")
-async def export_menu(message: Message):
+async def export_menu(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
 
+    await state.set_state(AdminSection.export)
     await message.answer(
         "📤 <b>Export bo‘limi</b>",
         reply_markup=export_kb()
     )
 
 
-@router.message(F.text == "📅 Bugun")
+@router.message(AdminSection.export, F.text == "📅 Bugun")
 async def export_today_handler(message: Message):
-    if not is_admin(message.from_user.id):
-        return
-
     path = await export_today()
     if not path:
         await message.answer("❗ Bugun uchun ma’lumot topilmadi.")
@@ -112,111 +108,88 @@ async def export_today_handler(message: Message):
     )
 
 
-@router.message(F.text == "🗂 Filter")
+@router.message(AdminSection.export, F.text == "🗂 Filter")
 async def export_filter(message: Message):
-    if not is_admin(message.from_user.id):
-        return
-
     await message.answer(
         "📆 Sanalarni kiriting.\n"
-        "Namuna: 01.12.2025 31.12.2025\n\n"
-        "⬅️ Ortga tugmasi bilan qaytishingiz mumkin",
+        "Namuna: 01.12.2025 31.12.2025",
         reply_markup=export_kb()
     )
 
 
-@router.message(F.text.regexp(r"^\d{2}\.\d{2}\.\d{4}\s\d{2}\.\d{2}\.\d{4}$"))
+@router.message(AdminSection.export, F.text.regexp(r"^\d{2}\.\d{2}\.\d{4}\s\d{2}\.\d{2}\.\d{4}$"))
 async def export_range_handler(message: Message):
-    if not is_admin(message.from_user.id):
-        return
-
     path = await export_range_by_text(message.text)
     if not path:
-        await message.answer(
-            "❗ Bu sana oralig‘ida ma’lumot topilmadi yoki format noto‘g‘ri.",
-            reply_markup=export_kb()
-        )
+        await message.answer("❗ Ma’lumot topilmadi.", reply_markup=export_kb())
         return
 
     await message.answer_document(FSInputFile(path))
     os.remove(path)
 
-    await message.answer(
-        "⬅️ Ortga qaytishingiz mumkin",
-        reply_markup=export_kb()
-    )
+    await message.answer("⬅️ Ortga qaytishingiz mumkin", reply_markup=export_kb())
 
 
-# ================= STATISTICS (REPLY KEYBOARD) =================
+# ================= STATISTICS =================
 
 @router.message(F.text == "📊 Statistika")
 async def statistics_menu(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
 
-    await state.clear()
+    await state.set_state(AdminSection.statistics)
     await message.answer(
         "📊 Statistikani tanlang:",
         reply_markup=admin_stats_menu_kb()
     )
 
 
-@router.message(F.text.in_(["👥 Jami", "📅 Bugun", "🗓 Oxirgi 7 kun", "📉 Joriy oy"]))
-async def global_stats(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
-    data = await state.get_data()
-    if "channel_key" in data:
-        return
-
+@router.message(AdminSection.statistics, F.text.in_(["👥 Jami", "📅 Bugun", "🗓 Oxirgi 7 kun", "📉 Joriy oy"]))
+async def global_stats(message: Message):
     stats = await get_full_statistics()
 
-    if message.text == "👥 Jami":
-        text = (
-            "👥 Jami statistika\n\n"
-            f"➕ Ro‘yxatdan o‘tganlar: {stats['total_registered']}\n"
-            f"➖ Chiqib ketganlar: {stats['total_left']}"
-        )
-    elif message.text == "📅 Bugun":
-        text = (
-            "📅 Bugungi statistika\n\n"
-            f"➕ Qo‘shilganlar: {stats['today_joined']}\n"
-            f"➖ Chiqib ketganlar: {stats['today_left']}"
-        )
-    elif message.text == "🗓 Oxirgi 7 kun":
-        text = (
-            "🗓 Oxirgi 7 kun\n\n"
-            f"➕ Qo‘shilganlar: {stats['week_joined']}\n"
-            f"➖ Chiqib ketganlar: {stats['week_left']}"
-        )
-    else:
-        text = (
-            "📉 Joriy oy\n\n"
-            f"➕ Qo‘shilganlar: {stats['month_joined']}\n"
-            f"➖ Chiqib ketganlar: {stats['month_left']}"
-        )
+    mapping = {
+        "👥 Jami": (
+            "👥 Jami statistika",
+            stats["total_registered"],
+            stats["total_left"]
+        ),
+        "📅 Bugun": (
+            "📅 Bugungi statistika",
+            stats["today_joined"],
+            stats["today_left"]
+        ),
+        "🗓 Oxirgi 7 kun": (
+            "🗓 Oxirgi 7 kun",
+            stats["week_joined"],
+            stats["week_left"]
+        ),
+        "📉 Joriy oy": (
+            "📉 Joriy oy",
+            stats["month_joined"],
+            stats["month_left"]
+        ),
+    }
 
-    await message.answer(text, reply_markup=admin_stats_menu_kb())
+    title, joined, left = mapping[message.text]
+
+    await message.answer(
+        f"{title}\n\n➕ Qo‘shilganlar: {joined}\n➖ Chiqib ketganlar: {left}",
+        reply_markup=admin_stats_menu_kb()
+    )
 
 
-@router.message(F.text == "📢 Kanallar bo‘yicha")
+@router.message(AdminSection.statistics, F.text == "📢 Kanallar bo‘yicha")
 async def channels_menu(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
-    await state.clear()
+    await state.set_state(AdminSection.channel_statistics)
     await message.answer(
         "📢 Kanalni tanlang:",
         reply_markup=admin_channels_kb()
     )
 
 
-@router.message(lambda m: m.text.startswith("📢 "))
+@router.message(AdminSection.channel_statistics, lambda m: m.text.startswith("📢 "))
 async def choose_channel(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
     title = message.text.replace("📢", "").strip()
     channel_key = None
 
@@ -229,20 +202,16 @@ async def choose_channel(message: Message, state: FSMContext):
     if not channel_key:
         return
 
-    await state.clear()
     await state.update_data(channel_key=channel_key)
 
     await message.answer(
-        f"📢 {message.text} statistikasi:",
+        f"{message.text} statistikasi:",
         reply_markup=admin_channel_stats_kb()
     )
 
 
-@router.message(F.text.in_(["👥 Jami", "📅 Bugun", "🗓 Oxirgi 7 kun", "📉 Joriy oy"]))
+@router.message(AdminSection.channel_statistics, F.text.in_(["👥 Jami", "📅 Bugun", "🗓 Oxirgi 7 kun", "📉 Joriy oy"]))
 async def channel_stats(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
     data = await state.get_data()
     channel_key = data.get("channel_key")
     if not channel_key:
@@ -265,33 +234,28 @@ async def channel_stats(message: Message, state: FSMContext):
     )
 
 
-# ================= POST (BROADCAST) =================
+# ================= POST =================
 
 @router.message(F.text == "📝 Post")
 async def post_start(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
 
+    await state.clear()
     await message.answer(
-        "📢 Botdan ro‘yxatdan o‘tgan barcha foydalanuvchilarga yuboriladigan "
-        "kontentni jo‘nating.\n\n"
-        "⬅️ Bekor qilish uchun Ortga tugmasini bosing."
+        "📢 Kontentni yuboring.\n⬅️ Bekor qilish uchun Ortga bosing."
     )
     await state.set_state(AdminPostState.waiting_content)
 
 
 @router.message(AdminPostState.waiting_content)
 async def post_send(message: Message, state: FSMContext):
-    if not is_admin(message.from_user.id):
-        return
-
     async with SessionLocal() as session:
         users = (await session.execute(
             select(User.telegram_id).where(User.is_registered == True)
         )).scalars().all()
 
     sent, failed = 0, 0
-
     for user_id in users:
         try:
             await message.copy_to(chat_id=user_id)
@@ -301,9 +265,7 @@ async def post_send(message: Message, state: FSMContext):
             failed += 1
 
     await message.answer(
-        "✅ Xabar yuborildi!\n\n"
-        f"👤 Yuborildi: {sent}\n"
-        f"❌ Yetib bormadi: {failed}",
+        f"✅ Xabar yuborildi!\n👤 Yuborildi: {sent}\n❌ Yetmadi: {failed}",
         reply_markup=admin_main_kb()
     )
 
