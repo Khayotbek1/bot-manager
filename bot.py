@@ -1,4 +1,5 @@
 import asyncio
+from handlers import join_request
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -12,7 +13,8 @@ from handlers import (
     registration,
     join_request,
     admin,
-    channel_events
+    channel_events,
+    chat_member
 )
 
 
@@ -31,6 +33,7 @@ async def main():
     dp.include_router(registration.router)
     dp.include_router(join_request.router)
     dp.include_router(channel_events.router)
+    dp.include_router(chat_member.router)
     dp.include_router(admin.router)
 
     # 🔹 DB yaratish
