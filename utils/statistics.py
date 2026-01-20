@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+
 from sqlalchemy import select, func, and_
 
 from database import SessionLocal
@@ -8,8 +9,17 @@ from models import User
 UZ_TZ = ZoneInfo("Asia/Tashkent")
 
 
+def naive(dt: datetime) -> datetime:
+    """
+    TZ-aware datetime -> TZ-naive (Postgres TIMESTAMP WITHOUT TIME ZONE uchun)
+    """
+    return dt.replace(tzinfo=None)
+
+
+# ================= GLOBAL STATISTICS =================
+
 async def get_full_statistics():
-    now = datetime.now(UZ_TZ)
+    now = naive(datetime.now(UZ_TZ))
 
     # Bugun
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -25,7 +35,7 @@ async def get_full_statistics():
         # ===== JAMI =====
         total_registered = (await session.execute(
             select(func.count(User.id))
-            .where(User.is_registered == True)
+            .where(User.is_registered.is_(True))
         )).scalar()
 
         total_left = (await session.execute(
@@ -102,4 +112,54 @@ async def get_full_statistics():
 
         "month_joined": month_joined,
         "month_left": month_left,
+    }
+
+
+# ================= CHANNEL STATISTICS =================
+
+async def get_channel_period_stats(channel_key: str, period: str):
+    """
+    period:
+    - total
+    - today
+    - week
+    - month
+    """
+    now = naive(datetime.now(UZ_TZ))
+
+    if period == "today":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=6)
+    elif period == "month":
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        start = None  # total
+
+    async with SessionLocal() as session:
+        # ===== JOINED =====
+        joined_query = select(func.count(User.id)).where(
+            User.channel == channel_key
+        )
+
+        if start:
+            joined_query = joined_query.where(User.joined_at >= start)
+
+        joined = (await session.execute(joined_query)).scalar()
+
+        # ===== LEFT =====
+        left_query = select(func.count(User.id)).where(
+            User.channel == channel_key,
+            User.left_at.is_not(None),
+            User.left_at <= now
+        )
+
+        if start:
+            left_query = left_query.where(User.left_at >= start)
+
+        left = (await session.execute(left_query)).scalar()
+
+    return {
+        "joined": joined,
+        "left": left,
     }
