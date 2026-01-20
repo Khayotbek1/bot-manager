@@ -1,4 +1,16 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+
+def regions_kb():
+    kb = InlineKeyboardBuilder()
+
+    for r in regions:
+        kb.button(text=r, callback_data=r)
+
+    kb.adjust(2)  # 2 ustun
+    return kb.as_markup()
+
 
 CHANNELS_BY_REGION = {
     "Fargʻona viloyati": {
@@ -20,7 +32,14 @@ CHANNELS_BY_REGION = {
             "url": "PASTE_LINK_HERE",
             "chat_id": -1001234567890
         }
-    }
+    },
+    "Toshkent": {
+        "smartlife_toshkent": {
+            "title": "📢 Smartlife Toshkent",
+            "url": "https://t.me/+JvL4ZWQ1iEdkOTJi",
+            "chat_id": -1001788954426
+        }
+    },
 }
 
 regions = [
@@ -34,12 +53,13 @@ regions = [
 
 
 def regions_kb():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text=r, callback_data=r)]
-            for r in regions
-        ]
-    )
+    kb = InlineKeyboardBuilder()
+
+    for r in regions:
+        kb.button(text=r, callback_data=r)
+
+    kb.adjust(2)
+    return kb.as_markup()
 
 
 def join_channel_kb():
@@ -81,3 +101,16 @@ def join_channel_kb(channel_key: str):
                 ]
             )
     return None
+
+
+def cancel_post_kb():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="❌ Bekor qilish",
+                    callback_data="cancel_post"
+                )
+            ]
+        ]
+    )

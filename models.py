@@ -11,6 +11,7 @@ class User(Base):
     first_name = Column(String)
     phone = Column(String, nullable=True)
     region = Column(String, nullable=True)
+    channel = Column(String, nullable=True)
 
     joined_at = Column(DateTime, default=datetime.utcnow)
     left_at = Column(DateTime, nullable=True)
