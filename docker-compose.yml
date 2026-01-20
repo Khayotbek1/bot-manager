@@ -1,0 +1,24 @@
+services:
+  bot:
+    build: .
+    container_name: smartlife_bot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+    command: python bot.py
+
+  db:
+    image: postgres:15
+    container_name: smartlife_db
+    restart: always
+    environment:
+      POSTGRES_USER: smartlife
+      POSTGRES_PASSWORD: 0002
+      POSTGRES_DB: bot_manager
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

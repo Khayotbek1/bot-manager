@@ -1,12 +1,11 @@
 import asyncio
-from handlers import join_request
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from config import BOT_TOKEN
-from database import engine, Base
+from database import engine
 
 from handlers import (
     start,
@@ -14,7 +13,7 @@ from handlers import (
     join_request,
     admin,
     channel_events,
-    chat_member
+    chat_member,
 )
 
 
@@ -36,16 +35,16 @@ async def main():
     dp.include_router(chat_member.router)
     dp.include_router(admin.router)
 
-    # 🔹 DB yaratish
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     print("✅ Bot ishga tushdi")
 
-    await dp.start_polling(
-        bot,
-        drop_pending_updates=True
-    )
+    try:
+        await dp.start_polling(
+            bot,
+            drop_pending_updates=True
+        )
+    finally:
+        # 🔹 Toza shutdown
+        await engine.dispose()
 
 
 if __name__ == "__main__":

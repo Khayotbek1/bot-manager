@@ -1,26 +1,29 @@
-# Python
+# ---------- Python ----------
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.env
+*.log
+*.sqlite3
+
+# ---------- Virtualenv ----------
 .venv/
 venv/
+env/
 
-# SQLite
-*.sqlite3
-db.sqlite3
+# ---------- Environment ----------
+.env
 
-# Logs
-*.log
+# ---------- Docker ----------
+.dockerignore
 
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
+# ---------- IDE ----------
 .vscode/
 .idea/
 
-# CSV exports
-*.csv
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+
+# ---------- Migrations cache ----------
+alembic/versions/__pycache__/
