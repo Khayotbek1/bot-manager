@@ -62,17 +62,17 @@ def regions_kb():
     return kb.as_markup()
 
 
-def join_channel_kb():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="📢 Kanalga kirish",
-                    url="https://t.me/+JvL4ZWQ1iEdkOTJi"
-                )
-            ]
-        ]
-    )
+# def join_channel_kb():
+#     return InlineKeyboardMarkup(
+#         inline_keyboard=[
+#             [
+#                 InlineKeyboardButton(
+#                     text="📢 Kanalga kirish",
+#                     url="https://t.me/+JvL4ZWQ1iEdkOTJi"
+#                 )
+#             ]
+#         ]
+#     )
 
 
 def channels_by_region_kb(region: str):
