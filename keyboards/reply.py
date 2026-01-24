@@ -2,14 +2,56 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from keyboards.inline import CHANNELS_BY_REGION
 
 
-# ================= USER KEYBOARDS =================
+# =================================================
+# START / USER MENUS
+# =================================================
 
-def register_kb():
+def start_menu_kb():
+    """
+    /start dan keyingi asosiy menyu
+    """
     return ReplyKeyboardMarkup(
         keyboard=[
             [
                 KeyboardButton(text="📝 Ro'yxatdan o'tish"),
-            ],
+                KeyboardButton(text="ℹ️ Biz haqimizda"),
+            ]
+        ],
+        resize_keyboard=True
+    )
+
+
+def register_kb():
+    """
+    Faqat ro'yxatdan o'tish (eski joylar uchun qoldirildi)
+    """
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📝 Ro'yxatdan o'tish")],
+        ],
+        resize_keyboard=True
+    )
+
+
+def back_kb():
+    """
+    Asosiy menyuga qaytish (Biz haqimizda va umumiy joylar)
+    """
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="⬅️ Ortga")],
+        ],
+        resize_keyboard=True
+    )
+
+
+def back_step_kb():
+    """
+    Registration jarayonida 1 qadam orqaga qaytish
+    """
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="⬅️ Ortga")],
         ],
         resize_keyboard=True
     )
@@ -39,7 +81,9 @@ def main_menu():
     )
 
 
-# ================= ADMIN MAIN PANEL =================
+# =================================================
+# ADMIN MAIN PANEL
+# =================================================
 
 def admin_main_kb():
     return ReplyKeyboardMarkup(
@@ -57,7 +101,9 @@ def admin_main_kb():
     )
 
 
-# ================= ADMIN EXPORT =================
+# =================================================
+# ADMIN EXPORT
+# =================================================
 
 def export_kb():
     return ReplyKeyboardMarkup(
@@ -74,7 +120,9 @@ def export_kb():
     )
 
 
-# ================= ADMIN STATISTICS =================
+# =================================================
+# ADMIN STATISTICS
+# =================================================
 
 def admin_stats_menu_kb():
     """
@@ -112,12 +160,10 @@ def admin_channels_kb():
         for ch in region_channels.values():
             row.append(KeyboardButton(text=ch["title"]))
 
-            # 2 tadan tugma → yangi qator
             if len(row) == 2:
                 buttons.append(row)
                 row = []
 
-    # agar oxirida 1 ta qolsa
     if row:
         buttons.append(row)
 

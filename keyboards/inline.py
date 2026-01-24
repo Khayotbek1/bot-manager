@@ -2,15 +2,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def regions_kb():
-    kb = InlineKeyboardBuilder()
-
-    for r in regions:
-        kb.button(text=r, callback_data=r)
-
-    kb.adjust(2)  # 2 ustun
-    return kb.as_markup()
-
+# =================================================
+# REGION → CHANNEL MAPPING (ASOSIY MANBA)
+# =================================================
 
 CHANNELS_BY_REGION = {
     "Fargʻona viloyati": {
@@ -21,16 +15,15 @@ CHANNELS_BY_REGION = {
         },
         "smartlife_qoqon": {
             "title": "📢 Smartlife Qo‘qon",
-            "url": "PASTE_LINK_HERE",
-            "chat_id": -1001234567890
-
+            "url": "https://t.me/+wvehxuugzJY4NGFi",
+            "chat_id": -1002015239197
         }
     },
     "Andijon viloyati": {
         "smartlife_andijon": {
             "title": "📢 Smartlife Andijon",
-            "url": "PASTE_LINK_HERE",
-            "chat_id": -1001234567890
+            "url": "https://t.me/+pTxzA5N28XlhNzdi",
+            "chat_id": -1002262515398
         }
     },
     "Toshkent": {
@@ -40,9 +33,21 @@ CHANNELS_BY_REGION = {
             "chat_id": -1001788954426
         }
     },
+    "Xorazm viloyati": {
+        "smartlife_xorazm": {
+            "title": "📢 Smartlife Xorazm",
+            "url": "https://t.me/PASTE_LINK",
+            "chat_id": -1001247697546
+        }
+    }
 }
 
-regions = [
+
+# ======================
+# REGIONS LIST (UI)
+# ======================
+
+REGIONS = [
     "Andijon viloyati", "Buxoro viloyati", "Fargʻona viloyati",
     "Jizzax viloyati", "Xorazm viloyati", "Namangan viloyati",
     "Navoiy viloyati", "Qashqadaryo viloyati",
@@ -52,58 +57,106 @@ regions = [
 ]
 
 
-def regions_kb():
+def regions_kb() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
+    for region in REGIONS:
+        kb.button(text=region, callback_data=region)
+    kb.adjust(2)
+    return kb.as_markup()
 
-    for r in regions:
-        kb.button(text=r, callback_data=r)
+
+# =================================================
+# CHANNELS BY REGION (FALLBACK BILAN)
+# =================================================
+
+def channels_by_region_kb(region: str) -> InlineKeyboardMarkup:
+    """
+    Agar tanlangan viloyatda kanal bo‘lsa → faqat o‘shalar chiqadi
+    Agar bo‘lmasa → mavjud barcha Smartlife kanallari chiqadi
+    """
+
+    channels = CHANNELS_BY_REGION.get(region)
+
+    # Fallback: viloyatda kanal yo‘q bo‘lsa
+    if not channels:
+        channels = {}
+        for region_channels in CHANNELS_BY_REGION.values():
+            channels.update(region_channels)
+
+    kb = InlineKeyboardBuilder()
+    for key, ch in channels.items():
+        kb.button(
+            text=ch["title"],
+            callback_data=f"channel:{key}"
+        )
 
     kb.adjust(2)
     return kb.as_markup()
 
 
-# def join_channel_kb():
-#     return InlineKeyboardMarkup(
-#         inline_keyboard=[
-#             [
-#                 InlineKeyboardButton(
-#                     text="📢 Kanalga kirish",
-#                     url="https://t.me/+JvL4ZWQ1iEdkOTJi"
-#                 )
-#             ]
-#         ]
-#     )
+# =================================================
+# JOIN CHANNEL (REQUEST LINK)
+# =================================================
 
-
-def channels_by_region_kb(region: str):
-    channels = CHANNELS_BY_REGION.get(region, {})
-
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=ch["title"],
-                    callback_data=f"channel:{key}"
-                )
-            ]
-            for key, ch in channels.items()
-        ]
-    )
-
-
-def join_channel_kb(channel_key: str):
+def join_channel_kb(channel_key: str) -> InlineKeyboardMarkup | None:
+    """
+    Kanalga so‘rov yuborish uchun LINK
+    """
     for region_channels in CHANNELS_BY_REGION.values():
         if channel_key in region_channels:
             url = region_channels[channel_key]["url"]
             return InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="📢 Kanalga kirish", url=url)]
+                    [
+                        InlineKeyboardButton(
+                            text="📢 Kanalga so‘rov yuborish",
+                            url=url
+                        )
+                    ]
                 ]
             )
     return None
 
 
-def cancel_post_kb():
+# =================================================
+# CHECK JOIN REQUEST
+# =================================================
+
+def check_join_kb(channel_key: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Tekshirish",
+                    callback_data=f"check_join:{channel_key}"
+                )
+            ]
+        ]
+    )
+
+def enter_channel_kb(channel_key: str) -> InlineKeyboardMarkup | None:
+    for region_channels in CHANNELS_BY_REGION.values():
+        if channel_key in region_channels:
+            url = region_channels[channel_key]["url"]
+            return InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="📢 Kanalga kirish",
+                            url=url
+                        )
+                    ]
+                ]
+            )
+    return None
+
+
+
+# ======================
+# CANCEL BUTTON
+# ======================
+
+def cancel_post_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

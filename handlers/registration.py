@@ -1,39 +1,97 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    ReplyKeyboardMarkup,
+    KeyboardButton
+)
 from sqlalchemy import select
 
 from database import SessionLocal
 from models import User
 from states import RegisterState
-from keyboards.reply import phone_kb, main_menu
+from keyboards.reply import (
+    phone_kb,
+    main_menu,
+    back_step_kb
+)
 from keyboards.inline import (
     regions_kb,
     channels_by_region_kb,
-    join_channel_kb
+    join_channel_kb,
+    check_join_kb
 )
 
 router = Router()
 
 
+# =========================
+# START REGISTRATION
+# =========================
+
 @router.message(F.text == "📝 Ro'yxatdan o'tish")
 async def start_register(message: Message, state):
-    sent = await message.answer(
-        "Telefon raqam jo'natish uchun pastdagi tugmani bosing.",
+    await state.clear()
+
+    await message.answer(
+        "📱 Telefon raqam jo'natish uchun pastdagi tugmani bosing.",
         reply_markup=phone_kb()
     )
-    await state.update_data(last_msg_id=sent.message_id)
     await state.set_state(RegisterState.phone)
 
 
+# =========================
+# BACK STEP (1 QADAM ORQAGA)
+# =========================
+
+@router.message(F.text == "⬅️ Ortga")
+async def back_step(message: Message, state):
+    current_state = await state.get_state()
+
+    # Kanal tanlash → Viloyat tanlash
+    if current_state == RegisterState.channel:
+        await state.set_state(RegisterState.region)
+        await message.answer(
+            "📍 Qaysi viloyatdansiz?",
+            reply_markup=regions_kb()
+        )
+
+    # Viloyat → Ism
+    elif current_state == RegisterState.region:
+        await state.set_state(RegisterState.first_name)
+        await message.answer(
+            "✍️ Ismingizni kiriting:",
+            reply_markup=back_step_kb()
+        )
+
+    # Ism → Telefon
+    elif current_state == RegisterState.first_name:
+        await state.set_state(RegisterState.phone)
+        await message.answer(
+            "📱 Telefon raqam jo'natish uchun pastdagi tugmani bosing.",
+            reply_markup=phone_kb()
+        )
+
+    # Faqat FSM tashqarisida → Bosh menu
+    else:
+        await state.clear()
+        await message.answer(
+            "🏠 Bosh menyu",
+            reply_markup=main_menu()
+        )
+
+
+# =========================
+# GET PHONE
+# =========================
+
 @router.message(RegisterState.phone, F.contact)
 async def get_phone(message: Message, state):
-    data = await state.get_data()
-    await message.bot.delete_message(message.chat.id, data["last_msg_id"])
-
     async with SessionLocal() as session:
-        user = (await session.execute(
+        result = await session.execute(
             select(User).where(User.telegram_id == message.from_user.id)
-        )).scalar_one_or_none()
+        )
+        user = result.scalar_one_or_none()
 
         if not user:
             user = User(
@@ -47,75 +105,108 @@ async def get_phone(message: Message, state):
 
         await session.commit()
 
-    sent = await message.answer("Ismingizni kiriting:")
-    await state.update_data(last_msg_id=sent.message_id)
+    await message.answer(
+        "✍️ Ismingizni kiriting:",
+        reply_markup=back_step_kb()
+    )
     await state.set_state(RegisterState.first_name)
 
 
+# =========================
+# GET NAME
+# =========================
+
 @router.message(RegisterState.first_name)
 async def get_name(message: Message, state):
-    data = await state.get_data()
-    await message.bot.delete_message(message.chat.id, data["last_msg_id"])
-
     async with SessionLocal() as session:
-        user = (await session.execute(
+        result = await session.execute(
             select(User).where(User.telegram_id == message.from_user.id)
-        )).scalar_one()
+        )
+        user = result.scalar_one()
 
-        user.first_name = message.text
+        user.first_name = message.text.strip()
         await session.commit()
 
-    sent = await message.answer(
-        "Qaysi viloyatdansiz?",
+    await message.answer(
+        "📍 Qaysi viloyatdansiz?",
         reply_markup=regions_kb()
     )
-    await state.update_data(last_msg_id=sent.message_id)
     await state.set_state(RegisterState.region)
 
+
+# =========================
+# GET REGION
+# =========================
 
 @router.callback_query(RegisterState.region)
 async def get_region(call: CallbackQuery, state):
     await call.message.delete()
 
     async with SessionLocal() as session:
-        user = (await session.execute(
+        result = await session.execute(
             select(User).where(User.telegram_id == call.from_user.id)
-        )).scalar_one()
+        )
+        user = result.scalar_one()
 
         user.region = call.data
         await session.commit()
 
     await call.message.answer(
-        "Hududingizdagi Smartlife kanallari",
+        "📢 Smartlife kanallari 👇",
         reply_markup=channels_by_region_kb(call.data)
+    )
+    await call.message.answer(
+        "⬅️ Ortga",
+        reply_markup=back_step_kb()
     )
     await state.set_state(RegisterState.channel)
 
+
+# =========================
+# GET CHANNEL
+# =========================
 
 @router.callback_query(RegisterState.channel, F.data.startswith("channel:"))
 async def get_channel(call: CallbackQuery, state):
     await call.message.delete()
 
-    channel_key = call.data.split(":")[1]
+    channel_key = call.data.split(":", 1)[1]
 
     async with SessionLocal() as session:
-        user = (await session.execute(
+        result = await session.execute(
             select(User).where(User.telegram_id == call.from_user.id)
-        )).scalar_one()
+        )
+        user = result.scalar_one()
 
         user.channel = channel_key
         user.is_registered = True
         await session.commit()
 
+    # 1️⃣ Kanalga so‘rov yuborish
     await call.message.answer(
-        "✅ Siz ro'yxatdan o'tdingiz!\n"
-        "Endi kanalga kirishingiz mumkin 👇",
+        "📌 Kanalga kirish uchun:\n\n"
+        "1️⃣ Avval kanalga so‘rov yuboring\n"
+        "2️⃣ Keyin «Tekshirish» tugmasini bosing",
         reply_markup=join_channel_kb(channel_key)
     )
 
+    # 2️⃣ Tekshirish
     await call.message.answer(
-        "🏠 Bosh menu",
-        reply_markup=main_menu()
+        "👇 So‘rov yuborgach tekshiring",
+        reply_markup=check_join_kb(channel_key)
     )
 
-    await state.clear()
+    # 3️⃣ Navigatsiya (FSM SAQLANADI)
+    await call.message.answer(
+        "📍 Keyingi amalni tanlang:",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text="🏠 Bosh menu")],
+                [KeyboardButton(text="⬅️ Ortga")]
+            ],
+            resize_keyboard=True
+        )
+    )
+    await state.set_state(RegisterState.channel)
+
+
