@@ -6,6 +6,9 @@ from aiogram.types import (
     KeyboardButton
 )
 from sqlalchemy import select
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter
+
 
 from database import SessionLocal
 from models import User
@@ -44,11 +47,18 @@ async def start_register(message: Message, state):
 # BACK STEP (1 QADAM ORQAGA)
 # =========================
 
-@router.message(F.text == "⬅️ Ortga")
-async def back_step(message: Message, state):
+@router.message(
+    StateFilter(
+        RegisterState.phone,
+        RegisterState.first_name,
+        RegisterState.region,
+        RegisterState.channel,
+    ),
+    F.text == "⬅️ Ortga"
+)
+async def back_step(message: Message, state: FSMContext):
     current_state = await state.get_state()
 
-    # Kanal tanlash → Viloyat tanlash
     if current_state == RegisterState.channel:
         await state.set_state(RegisterState.region)
         await message.answer(
@@ -56,7 +66,6 @@ async def back_step(message: Message, state):
             reply_markup=regions_kb()
         )
 
-    # Viloyat → Ism
     elif current_state == RegisterState.region:
         await state.set_state(RegisterState.first_name)
         await message.answer(
@@ -64,20 +73,11 @@ async def back_step(message: Message, state):
             reply_markup=back_step_kb()
         )
 
-    # Ism → Telefon
     elif current_state == RegisterState.first_name:
         await state.set_state(RegisterState.phone)
         await message.answer(
             "📱 Telefon raqam jo'natish uchun pastdagi tugmani bosing.",
-            reply_markup=phone_kb()
-        )
-
-    # Faqat FSM tashqarisida → Bosh menu
-    else:
-        await state.clear()
-        await message.answer(
-            "🏠 Bosh menyu",
-            reply_markup=main_menu()
+            reply_markup=phone_kb(),
         )
 
 

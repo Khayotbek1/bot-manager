@@ -1,6 +1,7 @@
 import os
 import asyncio
 
+from aiogram.filters import StateFilter
 from aiogram import Router, F
 from aiogram.types import Message, FSInputFile, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -61,7 +62,16 @@ async def admin_panel(message: Message, state: FSMContext):
 # BACK / HOME
 # =====================================================
 
-@router.message(F.text == "⬅️ Ortga")
+@router.message(
+    StateFilter(
+        AdminSection.panel,
+        AdminSection.export,
+        AdminSection.statistics_menu,
+        AdminSection.channel_list,
+        AdminSection.channel_detail,
+    ),
+    F.text == "⬅️ Ortga"
+)
 async def back_handler(message: Message, state: FSMContext):
     if not is_admin(message.from_user.id):
         return
@@ -70,21 +80,44 @@ async def back_handler(message: Message, state: FSMContext):
 
     if current == AdminSection.channel_detail:
         await state.set_state(AdminSection.channel_list)
-        await message.answer("📢 Kanalni tanlang:", reply_markup=admin_channels_kb())
+        await message.answer(
+            "📢 Kanalni tanlang:",
+            reply_markup=admin_channels_kb()
+        )
         return
 
     if current == AdminSection.channel_list:
         await state.set_state(AdminSection.statistics_menu)
-        await message.answer("📊 Statistikani tanlang:", reply_markup=admin_stats_menu_kb())
+        await message.answer(
+            "📊 Statistikani tanlang:",
+            reply_markup=admin_stats_menu_kb()
+        )
         return
 
-    if current in (AdminSection.statistics_menu, AdminSection.export):
+    if current == AdminSection.statistics_menu:
         await state.set_state(AdminSection.panel)
-        await message.answer("👨‍💼 <b>Admin panel</b>", reply_markup=admin_main_kb())
+        await message.answer(
+            "👨‍💼 <b>Admin panel</b>",
+            reply_markup=admin_main_kb()
+        )
         return
 
-    await state.clear()
-    await message.answer("👨‍💼 <b>Admin panel</b>", reply_markup=admin_main_kb())
+    if current == AdminSection.export:
+        await state.set_state(AdminSection.panel)
+        await message.answer(
+            "👨‍💼 <b>Admin panel</b>",
+            reply_markup=admin_main_kb()
+        )
+        return
+
+    # fallback (xavfsizlik uchun)
+    await state.set_state(AdminSection.panel)
+    await message.answer(
+        "👨‍💼 <b>Admin panel</b>",
+        reply_markup=admin_main_kb()
+    )
+
+
 
 
 @router.message(F.text == "🏠 Bosh menu")

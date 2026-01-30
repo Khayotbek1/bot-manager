@@ -195,3 +195,17 @@ def admin_channel_stats_kb():
         ],
         resize_keyboard=True
     )
+
+def main_menu_registered():
+    """
+    Ro‘yxatdan O‘TGAN userlar uchun asosiy menyu
+    """
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text="ℹ️ Biz haqimizda"),
+            ]
+        ],
+        resize_keyboard=True
+    )
+
