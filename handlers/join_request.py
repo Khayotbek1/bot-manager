@@ -10,45 +10,45 @@ from keyboards.inline import CHANNELS_BY_REGION, enter_channel_kb
 router = Router()
 
 
-# =================================================
-# 1. JOIN REQUEST EVENT (AUTO APPROVE YO‘Q)
-# =================================================
 
 @router.chat_join_request()
 async def handle_join_request(request: ChatJoinRequest):
     """
-    User kanalga so‘rov yuborganda:
-    - bot userni tekshiradi
-    - lekin avtomatik approve QILMAYDI
+    UNIVERSAL JOIN REQUEST HANDLER
+
+    - Qaysi linkdan kirganidan qat’i nazar
+    - HAR DOIM avtomatik approve
+    - Kick / ban YO‘Q
+    - Faqat botdan ro‘yxatdan o‘tmaganlarga xabar yuboriladi
     """
 
     user_id = request.from_user.id
-    chat_id = request.chat.id
 
+    # 1️⃣ HAR DOIM APPROVE
+    try:
+        await request.approve()
+    except TelegramBadRequest:
+        return
+
+    # 2️⃣ User botda bormi — tekshiramiz
     async with SessionLocal() as session:
         result = await session.execute(
             select(User).where(User.telegram_id == user_id)
         )
         user = result.scalar_one_or_none()
 
-    # ❌ Botda ro‘yxatdan o‘tmagan bo‘lsa
-    if not user or not user.is_registered or not user.channel:
-        await safe_decline(request)
-        return
-
-    # ❌ User tanlamagan kanalga so‘rov yuborsa
-    for region_channels in CHANNELS_BY_REGION.values():
-        for channel_key, channel in region_channels.items():
-            if channel["chat_id"] == chat_id:
-                if user.channel == channel_key:
-                    # To‘g‘ri kanal — lekin HOZIRCHA approve yo‘q
-                    return
-                else:
-                    await safe_decline(request)
-                    return
-
-    # ❌ Umuman bizga tegishli bo‘lmagan kanal bo‘lsa
-    await safe_decline(request)
+    # 3️⃣ Agar botdan ro‘yxatdan o‘tmagan bo‘lsa — xabar yuboramiz
+    if not user or not user.is_registered:
+        try:
+            await request.bot.send_message(
+                user_id,
+                "👋 Xush kelibsiz!\n\n"
+                "📌 Botdan ro‘yxatdan o‘ting va "
+                "operatorlarimiz orqali savollaringizga javob oling!"
+            )
+        except TelegramBadRequest:
+            # user botga yozmagan bo‘lishi mumkin — jim o‘tamiz
+            pass
 
 
 # =================================================
