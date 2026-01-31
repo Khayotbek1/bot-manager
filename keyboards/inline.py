@@ -32,14 +32,12 @@ CHANNELS_BY_REGION = {
             "url": "https://t.me/+JvL4ZWQ1iEdkOTJi",
             "chat_id": -1001788954426
         }
-    },
-    "Xorazm viloyati": {
-        "smartlife_xorazm": {
-            "title": "📢 Smartlife Xorazm",
-            "url": "https://t.me/PASTE_LINK",
-            "chat_id": -1001247697546
-        }
     }
+}
+ALL_CHANNEL_IDS = {
+    channel["chat_id"]
+    for region in CHANNELS_BY_REGION.values()
+    for channel in region.values()
 }
 
 
