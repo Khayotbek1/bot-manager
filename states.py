@@ -19,9 +19,9 @@ class AdminPostState(StatesGroup):
 # ================= ADMIN FSM =================
 
 class AdminSection(StatesGroup):
-    panel = State()            # Admin panel (boshlanish)
-    export = State()           # Export bo‘limi
+    panel = State()
+    export = State()
 
-    statistics_menu = State()  # Statistika asosiy menyu
-    channel_list = State()     # Kanallar ro‘yxati
-    channel_detail = State()   # Bitta kanal statistikasi
+    statistics_menu = State()
+    channel_list = State()
+    channel_detail = State()

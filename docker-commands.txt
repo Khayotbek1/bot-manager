@@ -1,0 +1,5 @@
+DB ga ulanish: docker exec -it smartlife_db psql -U smartlife -d bot_manager
+Tekshirish: docker ps
+Ishga tushirish: docker compose up -d
+Build qilish: docker compose up -d --build
+Loglar: docker logs -f smartlife_bot

@@ -2,10 +2,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-# =================================================
-# REGION → CHANNEL MAPPING (ASOSIY MANBA)
-# =================================================
-
 CHANNELS_BY_REGION = {
     "Fargʻona viloyati": {
         "smartlife_fargona": {
@@ -40,11 +36,6 @@ ALL_CHANNEL_IDS = {
     for channel in region.values()
 }
 
-
-# ======================
-# REGIONS LIST (UI)
-# ======================
-
 REGIONS = [
     "Andijon viloyati", "Buxoro viloyati", "Fargʻona viloyati",
     "Jizzax viloyati", "Xorazm viloyati", "Namangan viloyati",
@@ -63,19 +54,11 @@ def regions_kb() -> InlineKeyboardMarkup:
     return kb.as_markup()
 
 
-# =================================================
-# CHANNELS BY REGION (FALLBACK BILAN)
-# =================================================
 
 def channels_by_region_kb(region: str) -> InlineKeyboardMarkup:
-    """
-    Agar tanlangan viloyatda kanal bo‘lsa → faqat o‘shalar chiqadi
-    Agar bo‘lmasa → mavjud barcha Smartlife kanallari chiqadi
-    """
 
     channels = CHANNELS_BY_REGION.get(region)
 
-    # Fallback: viloyatda kanal yo‘q bo‘lsa
     if not channels:
         channels = {}
         for region_channels in CHANNELS_BY_REGION.values():

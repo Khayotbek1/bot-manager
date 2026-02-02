@@ -35,27 +35,18 @@ def today_range_naive():
 # ================= FORMAT HELPERS =================
 
 def format_dt(dt):
-    """
-    Datetime ni Excel uchun qulay formatga o‘tkazish
-    (DB’da tz-naive, ko‘rsatishda Asia/Tashkent)
-    """
     if not dt:
         return ""
     return dt.replace(tzinfo=UZ_TZ).strftime("%d.%m.%Y %H:%M")
 
 
 def parse_date_range(text: str):
-    """
-    Kutilgan format:
-    01.01.2026 10.01.2026
-    """
     try:
         start_str, end_str = text.strip().split()
 
         start_date = datetime.strptime(start_str, DATE_FORMAT)
         end_date = datetime.strptime(end_str, DATE_FORMAT)
 
-        # 👉 DB uchun TZ-NAIVE qilib qaytaramiz
         start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = datetime.combine(
             end_date.date(),
@@ -102,7 +93,7 @@ async def write_csv(filename: str, users: list[User]):
                 u.telegram_id,
                 u.username,
                 u.first_name,
-                f"'{u.phone}",          # Excel raqamni buzmasin
+                f"'{u.phone}",
                 u.region,
                 get_channel_title(u.channel),
                 format_dt(u.joined_at),

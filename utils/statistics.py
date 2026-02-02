@@ -10,9 +10,6 @@ UZ_TZ = ZoneInfo("Asia/Tashkent")
 
 
 def naive(dt: datetime) -> datetime:
-    """
-    TZ-aware datetime -> TZ-naive (Postgres TIMESTAMP WITHOUT TIME ZONE uchun)
-    """
     return dt.replace(tzinfo=None)
 
 

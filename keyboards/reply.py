@@ -125,9 +125,6 @@ def export_kb():
 # =================================================
 
 def admin_stats_menu_kb():
-    """
-    📊 Statistika → asosiy menyu (2x2 grid)
-    """
     return ReplyKeyboardMarkup(
         keyboard=[
             [
@@ -197,9 +194,7 @@ def admin_channel_stats_kb():
     )
 
 def main_menu_registered():
-    """
-    Ro‘yxatdan O‘TGAN userlar uchun asosiy menyu
-    """
+
     return ReplyKeyboardMarkup(
         keyboard=[
             [
