@@ -6,26 +6,26 @@ CHANNELS_BY_REGION = {
     "Fargʻona viloyati": {
         "smartlife_fargona": {
             "title": "📢 Smartlife Fargʻona",
-            "url": "https://t.me/+i5AOxrp9VnoxOGQy",
+            "url": "https://t.me/+O7jHYy-QKDhjMzAy",
             "chat_id": -1001247697546
         },
         "smartlife_qoqon": {
             "title": "📢 Smartlife Qo‘qon",
-            "url": "https://t.me/+wvehxuugzJY4NGFi",
+            "url": "https://t.me/+l49Y_Alc9dpkMTdi",
             "chat_id": -1002015239197
         }
     },
     "Andijon viloyati": {
         "smartlife_andijon": {
             "title": "📢 Smartlife Andijon",
-            "url": "https://t.me/+pTxzA5N28XlhNzdi",
+            "url": "https://t.me/+ga96zEENMI40ZDgy",
             "chat_id": -1002262515398
         }
     },
     "Toshkent": {
         "smartlife_toshkent": {
             "title": "📢 Smartlife Toshkent",
-            "url": "https://t.me/+JvL4ZWQ1iEdkOTJi",
+            "url": "https://t.me/smartlife_price",
             "chat_id": -1001788954426
         }
     }
