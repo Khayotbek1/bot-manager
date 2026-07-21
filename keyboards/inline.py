@@ -13,6 +13,11 @@ CHANNELS_BY_REGION = {
             "title": "📢 Smartlife Qo‘qon",
             "url": "https://t.me/+l49Y_Alc9dpkMTdi",
             "chat_id": -1002015239197
+        },
+        "smartlife_oltiariq": {
+            "title": "📢 Smartlife Oltiariq",
+            "url": "https://t.me/smartlife_oltiariq",
+            "chat_id": -1001640277219
         }
     },
     "Andijon viloyati": {
